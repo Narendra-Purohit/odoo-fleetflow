@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Vehicle: {{ vehicle.plate_number }}{% endblock %}
+{% block page_title %}Vehicle – {{ vehicle.plate_number }}{% endblock %}
+
+{% block content %}
+<div class="flex gap-3 mb-4" style="align-items:flex-start;">
+    <div class="card" style="flex:1;">
+        <div class="card-header">
+            <span class="card-title">{{ vehicle.make }} {{ vehicle.model }} ({{ vehicle.year }})</span>
+            {% if user.is_manager or user.is_superuser %}
+            <a href="{% url 'fleet:vehicle_update' vehicle.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+            {% endif %}
+        </div>
+        <div class="form-grid">
+            <div>
+                <div class="kpi-label">Plate Number</div>
+                <div class="fw-600">{{ vehicle.plate_number }}</div>
+            </div>
+            <div>
+                <div class="kpi-label">Status</div>
+                {% if vehicle.status == 'AVAILABLE' %}<span class="badge badge-green">Available</span>
+                {% elif vehicle.status == 'ON_TRIP' %}<span class="badge badge-blue">On Trip</span>
+                {% elif vehicle.status == 'IN_MAINTENANCE' %}<span class="badge badge-orange">In Maintenance</span>
+                {% else %}<span class="badge badge-gray">Decommissioned</span>{% endif %}
+            </div>
+            <div>
+                <div class="kpi-label">Fuel Type</div>
+                <div>{{ vehicle.get_fuel_type_display }}</div>
+            </div>
+            <div>
+                <div class="kpi-label">Max Capacity</div>
+                <div>{{ vehicle.max_capacity_kg }} kg</div>
+            </div>
+            <div>
+                <div class="kpi-label">Odometer</div>
+                <div>{{ vehicle.odometer_km }} km</div>
+            </div>
+            <div>
+                <div class="kpi-label">VIN</div>
+                <div class="text-muted">{{ vehicle.vin|default:"—" }}</div>
+            </div>
+        </div>
+        {% if vehicle.notes %}<p class="text-muted text-small mt-4">{{ vehicle.notes }}</p>{% endif %}
+    </div>
+</div>
+
+<!-- Fuel Logs -->
+{% if fuel_logs %}
+<div class="card mt-4">
+    <div class="card-header">
+        <span class="card-title">⛽ Recent Fuel Logs</span>
+        <a href="{% url 'fleet:fuel_log_create' %}" class="btn btn-secondary btn-sm">+ Add Log</a>
+    </div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Liters</th>
+                    <th>₹/L</th>
+                    <th>Total Cost</th>
+                    <th>Odometer</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in fuel_logs %}
+                <tr>
+                    <td>{{ log.date }}</td>
+                    <td>{{ log.liters }}L</td>
+                    <td>₹{{ log.cost_per_liter }}</td>
+                    <td>₹{{ log.total_cost }}</td>
+                    <td class="text-muted">{{ log.odometer_at_fill }} km</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Maintenance Logs -->
+{% if maint_logs %}
+<div class="card mt-4">
+    <div class="card-header">
+        <span class="card-title">🔧 Maintenance History</span>
+        <a href="{% url 'maintenance:log_create' %}" class="btn btn-secondary btn-sm">+ Log</a>
+    </div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Cost</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in maint_logs %}
+                <tr>
+                    <td>{{ log.get_service_type_display }}</td>
+                    <td>
+                        {% if log.status == 'OPEN' %}<span class="badge badge-orange">Open</span>
+                        {% elif log.status == 'IN_PROGRESS' %}<span class="badge badge-blue">In Progress</span>
+                        {% else %}<span class="badge badge-green">Closed</span>{% endif %}
+                    </td>
+                    <td>{{ log.start_date }}</td>
+                    <td>{{ log.end_date|default:"—" }}</td>
+                    <td>₹{{ log.cost }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

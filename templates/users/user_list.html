@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block page_title %}System Users{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">All Users</h2>
+        <div class="card-actions">
+            <a href="{% url 'users:user_create' %}" class="btn btn-primary btn-sm">+ Add User</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Department</th>
+                    <th>Last Login</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div
+                                style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;">
+                                {{ u.first_name|first|upper }}{{ u.last_name|first|upper }}
+                            </div>
+                            <span>{{ u.get_full_name|default:u.username }}</span>
+                        </div>
+                    </td>
+                    <td style="color:var(--text-secondary);">{{ u.email }}</td>
+                    <td>
+                        {% if u.role %}
+                        {% if u.role.name == 'MANAGER' %}<span class="badge badge-blue">{{ u.role.get_name_display
+                            }}</span>
+                        {% elif u.role.name == 'DISPATCHER' %}<span class="badge badge-green">{{ u.role.get_name_display
+                            }}</span>
+                        {% elif u.role.name == 'SAFETY_OFFICER' %}<span class="badge badge-orange">{{
+                            u.role.get_name_display }}</span>
+                        {% elif u.role.name == 'FINANCIAL_ANALYST' %}<span class="badge badge-purple">{{
+                            u.role.get_name_display }}</span>
+                        {% else %}<span class="badge">{{ u.role.get_name_display }}</span>{% endif %}
+                        {% elif u.is_superuser %}
+                        <span class="badge badge-red">Superuser</span>
+                        {% else %}
+                        <span class="badge" style="background:var(--bg-tertiary);">No Role</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if u.is_active %}
+                        <span class="badge badge-green">Active</span>
+                        {% else %}
+                        <span class="badge badge-red">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ u.profile.department|default:"—" }}</td>
+                    <td class="text-muted text-small">{{ u.last_login|date:"d M Y H:i"|default:"Never" }}</td>
+                    <td>
+                        <div style="display:flex;gap:6px;">
+                            <a href="{% url 'users:user_edit' u.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+                            {% if u != request.user and not u.is_superuser %}
+                            <form method="post" action="{% url 'users:user_delete' u.pk %}"
+                                onsubmit="return confirm('Permanently delete {{ u.email }}? This cannot be undone.')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm"
+                                    style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);">Delete</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align:center;color:var(--text-muted);">No users found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

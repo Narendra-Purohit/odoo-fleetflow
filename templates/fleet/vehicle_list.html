@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Vehicles{% endblock %}
+{% block page_title %}Fleet – Vehicles{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <span class="section-title">All Vehicles</span>
+    {% if user.is_manager or user.is_superuser %}
+    <a href="{% url 'fleet:vehicle_create' %}" class="btn btn-primary">+ Add Vehicle</a>
+    {% endif %}
+</div>
+
+<div class="filter-bar">
+    <a href="{% url 'fleet:vehicle_list' %}" class="filter-btn {% if not current_status %}active{% endif %}">All</a>
+    {% for value, label in status_choices %}
+    <a href="?status={{ value }}" class="filter-btn {% if current_status == value %}active{% endif %}">{{ label }}</a>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Plate</th>
+                    <th>Make / Model</th>
+                    <th>Year</th>
+                    <th>Fuel</th>
+                    <th>Capacity (kg)</th>
+                    <th>Odometer</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in vehicles %}
+                <tr>
+                    <td><strong>{{ v.plate_number }}</strong></td>
+                    <td>{{ v.make }} {{ v.model }}</td>
+                    <td>{{ v.year }}</td>
+                    <td>{{ v.get_fuel_type_display }}</td>
+                    <td>{{ v.max_capacity_kg }}</td>
+                    <td class="text-muted">{{ v.odometer_km }} km</td>
+                    <td>
+                        {% if v.status == 'AVAILABLE' %}<span class="badge badge-green">Available</span>
+                        {% elif v.status == 'ON_TRIP' %}<span class="badge badge-blue">On Trip</span>
+                        {% elif v.status == 'IN_MAINTENANCE' %}<span class="badge badge-orange">In Maintenance</span>
+                        {% else %}<span class="badge badge-gray">Decommissioned</span>{% endif %}
+                    </td>
+                    <td><a href="{% url 'fleet:vehicle_detail' v.pk %}" class="btn btn-secondary btn-sm">Details</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-muted" style="text-align:center;padding:32px;">No vehicles found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

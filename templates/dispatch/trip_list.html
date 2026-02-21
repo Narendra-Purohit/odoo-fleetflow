@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Trips{% endblock %}
+{% block page_title %}Dispatch – Trips{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <span class="section-title">All Trips</span>
+    <a href="{% url 'dispatch:trip_create' %}" class="btn btn-primary">+ New Trip</a>
+</div>
+
+<div class="filter-bar">
+    <a href="{% url 'dispatch:trip_list' %}" class="filter-btn {% if not current_status %}active{% endif %}">All</a>
+    {% for value, label in status_choices %}
+    <a href="?status={{ value }}" class="filter-btn {% if current_status == value %}active{% endif %}">{{ label }}</a>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Trip #</th>
+                    <th>Route</th>
+                    <th>Status</th>
+                    <th>Vehicle</th>
+                    <th>Driver</th>
+                    <th>Scheduled</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trip in trips %}
+                <tr>
+                    <td><span class="tag">{{ trip.trip_number }}</span></td>
+                    <td>{{ trip.origin|truncatechars:18 }} → {{ trip.destination|truncatechars:18 }}</td>
+                    <td>
+                        {% if trip.status == 'PLANNED' %}<span class="badge badge-gray">Planned</span>
+                        {% elif trip.status == 'DISPATCHED' %}<span class="badge badge-blue">Dispatched</span>
+                        {% elif trip.status == 'IN_TRANSIT' %}<span class="badge badge-orange">In Transit</span>
+                        {% elif trip.status == 'COMPLETED' %}<span class="badge badge-green">Completed</span>
+                        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+                    </td>
+                    <td>{% if trip.assignment %}{{ trip.assignment.vehicle.plate_number }}{% else %}<span
+                            class="text-muted">—</span>{% endif %}</td>
+                    <td>{% if trip.assignment %}{{ trip.assignment.driver.user.first_name }} {{
+                        trip.assignment.driver.user.last_name }}{% else %}<span class="text-muted">—</span>{% endif %}
+                    </td>
+                    <td class="text-muted text-small">{{ trip.scheduled_at|date:"d M Y, H:i" }}</td>
+                    <td><a href="{% url 'dispatch:trip_detail' trip.pk %}" class="btn btn-secondary btn-sm">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-muted" style="text-align:center;padding:32px;">No trips found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

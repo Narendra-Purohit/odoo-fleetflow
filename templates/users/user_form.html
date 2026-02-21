@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}{% if action == "Edit" %}Edit User{% else %}Create User{% endif %}{% endblock %}
+{% block page_title %}{% if action == "Edit" %}Edit User{% else %}Create User{% endif %}{% endblock %}
+
+{% block content %}
+<div style="max-width:600px;">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                {% if action == "Edit" %}
+                Edit: {{ target_user.full_name|default:target_user.email }}
+                {% else %}
+                New System User
+                {% endif %}
+            </h2>
+            <a href="{% url 'users:user_list' %}" class="btn btn-secondary btn-sm">← Back to Users</a>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="form-group">
+                    <label class="form-label" for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                        {% if field.field.required %}<span style="color:var(--status-red);">*</span>{% endif %}
+                    </label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <span class="form-hint">{{ field.help_text }}</span>
+                    {% endif %}
+                    {% for error in field.errors %}
+                    <span class="form-error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+                {% if form.non_field_errors %}
+                <div class="alert alert-error" style="margin-bottom:16px;">{{ form.non_field_errors }}</div>
+                {% endif %}
+                <div style="display:flex;gap:12px;margin-top:24px;">
+                    <button type="submit" class="btn btn-primary">
+                        {% if action == "Edit" %}Save Changes{% else %}Create User{% endif %}
+                    </button>
+                    <a href="{% url 'users:user_list' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if action == "Edit" and target_user %}
+    <div class="card" style="margin-top:16px;">
+        <div class="card-header">
+            <h3 class="card-title" style="font-size:14px;">Quick Info</h3>
+        </div>
+        <div class="card-body"
+            style="font-size:13px;color:var(--text-secondary);display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div><strong>Email:</strong> {{ target_user.email }}</div>
+            <div><strong>Joined:</strong> {{ target_user.date_joined|date:"d M Y" }}</div>
+            <div><strong>Last Login:</strong> {{ target_user.last_login|date:"d M Y H:i"|default:"Never" }}</div>
+            <div><strong>Superuser:</strong> {{ target_user.is_superuser|yesno:"Yes,No" }}</div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

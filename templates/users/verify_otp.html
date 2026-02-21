@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block full_page %}
+<div class="login-page">
+    <div class="login-box">
+        <div class="login-logo">
+            <div class="logo-circle">📧</div>
+            <h1>Enter OTP</h1>
+            <p>Check your email for the 6-digit code</p>
+        </div>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" style="margin-bottom:16px;">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+
+        <div
+            style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:8px;padding:12px;margin-bottom:20px;font-size:13px;color:var(--text-secondary);text-align:center;">
+            📬 We've sent a 6-digit OTP to your email address.<br>
+            <span style="color:var(--text-muted);font-size:12px;">It expires in 10 minutes. Check your spam folder if
+                you don't see it.</span>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">{{ form.otp.label }}</label>
+                {{ form.otp }}
+                {% for e in form.otp.errors %}<span class="form-error">{{ e }}</span>{% endfor %}
+            </div>
+            {% if form.non_field_errors %}
+            <div class="alert alert-error">{{ form.non_field_errors.0 }}</div>
+            {% endif %}
+            <button type="submit" class="btn btn-primary w-full"
+                style="justify-content:center;margin-top:12px;padding:10px;">
+                Verify OTP &rarr;
+            </button>
+        </form>
+
+        <div style="margin-top:16px;text-align:center;font-size:13px;color:var(--text-muted);">
+            Didn't receive it? <a href="{% url 'users:forgot_password' %}" style="color:var(--accent-blue);">Resend
+                OTP</a>
+        </div>
+        <div style="margin-top:8px;text-align:center;">
+            <a href="{% url 'users:login' %}" style="color:var(--text-muted);font-size:12px;">← Back to Sign In</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-group input {
+        width: 100%;
+        background: #0d1117;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-primary);
+        padding: 14px 12px;
+        font-size: 1.4rem;
+        font-family: inherit;
+        box-sizing: border-box;
+        letter-spacing: 0.4em;
+        text-align: center;
+        margin-top: 6px;
+    }
+
+    .form-group input:focus {
+        border-color: var(--accent-blue);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .form-error {
+        color: #ef4444;
+        font-size: 12px;
+        display: block;
+        margin-top: 4px;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Invoices{% endblock %}
+{% block page_title %}Invoices{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">All Invoices</h2>
+        <div class="card-actions">
+            <a href="{% url 'finance:invoice_create' %}" class="btn btn-primary btn-sm">+ New Invoice</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Trip</th>
+                    <th>Client</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Issued</th>
+                    <th>Paid</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inv in invoices %}
+                <tr>
+                    <td>{{ inv.trip }}</td>
+                    <td>{{ inv.client_name }}</td>
+                    <td>&#8377;{{ inv.amount_charged }}</td>
+                    <td>
+                        {% if inv.status == 'PAID' %}
+                        <span class="badge badge-success">Paid</span>
+                        {% elif inv.status == 'OVERDUE' %}
+                        <span class="badge badge-danger">Overdue</span>
+                        {% else %}
+                        <span class="badge badge-warning">{{ inv.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ inv.issued_at }}</td>
+                    <td>{{ inv.paid_at|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align:center;color:var(--text-muted);">No invoices yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

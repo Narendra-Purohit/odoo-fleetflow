@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Vehicle{% endblock %}
+{% block page_title %}{{ action }} Vehicle{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:720px;">
+    <div class="card-header">
+        <span class="card-title">{{ action }} Vehicle</span>
+        <a href="{% url 'fleet:vehicle_list' %}" class="btn btn-secondary btn-sm">← Back</a>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-grid">
+            {% for field in form %}
+            <div class="form-group {% if field.name == 'notes' %}{% endif %}">
+                <label class="form-label">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                {% endif %}
+                {% if field.help_text %}<small class="text-muted">{{ field.help_text }}</small>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        <div class="flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary">{{ action }} Vehicle</button>
+            <a href="{% url 'fleet:vehicle_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        background: #0d1117;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-primary);
+        padding: 8px 12px;
+        font-size: 13.5px;
+        font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: var(--accent-blue);
+        outline: none;
+    }
+</style>
+{% endblock %}

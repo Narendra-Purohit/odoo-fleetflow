@@ -1,0 +1,7 @@
+"""FleetFlow – analytics AppConfig."""
+from django.apps import AppConfig
+
+
+class AnalyticsConfig(AppConfig):
+    name = "apps.analytics"
+    verbose_name = "Analytics"

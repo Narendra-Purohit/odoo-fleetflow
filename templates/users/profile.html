@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 2fr;gap:24px;align-items:start;">
+
+    <!-- Profile card -->
+    <div class="card">
+        <div class="card-body" style="text-align:center;padding:32px 24px;">
+            <div class="user-avatar" style="width:72px;height:72px;font-size:28px;margin:0 auto 16px;">
+                {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+            </div>
+            <div style="font-size:18px;font-weight:600;color:var(--text-primary);">
+                {{ request.user.get_full_name|default:request.user.username }}
+            </div>
+            <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">{{ request.user.email }}</div>
+            {% if request.user.role %}
+            <span class="badge" style="margin-top:12px;">{{ request.user.role.get_name_display }}</span>
+            {% endif %}
+            <div style="margin-top:20px;font-size:12px;color:var(--text-muted);">
+                Joined {{ request.user.date_joined|date:"d M Y" }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit form -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Update Profile</h2>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% for field in profile_form %}
+                <div class="form-group">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

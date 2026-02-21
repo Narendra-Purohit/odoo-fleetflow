@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Maintenance Logs{% endblock %}
+{% block page_title %}Maintenance – Logs{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <span class="section-title">Maintenance Logs</span>
+    <a href="{% url 'maintenance:log_create' %}" class="btn btn-primary">+ Log Maintenance</a>
+</div>
+
+<div class="filter-bar">
+    <a href="{% url 'maintenance:log_list' %}" class="filter-btn {% if not current_status %}active{% endif %}">All</a>
+    {% for value, label in status_choices %}
+    <a href="?status={{ value }}" class="filter-btn {% if current_status == value %}active{% endif %}">{{ label }}</a>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Vehicle</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Cost</th>
+                    <th>Vendor</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td><strong>{{ log.vehicle.plate_number }}</strong></td>
+                    <td>{{ log.get_service_type_display }}</td>
+                    <td>
+                        {% if log.status == 'OPEN' %}<span class="badge badge-orange">Open</span>
+                        {% elif log.status == 'IN_PROGRESS' %}<span class="badge badge-blue">In Progress</span>
+                        {% else %}<span class="badge badge-green">Closed</span>{% endif %}
+                    </td>
+                    <td>{{ log.start_date }}</td>
+                    <td>{{ log.end_date|default:"—" }}</td>
+                    <td>₹{{ log.cost }}</td>
+                    <td class="text-muted">{{ log.vendor|default:"—" }}</td>
+                    <td class="flex gap-2">
+                        <a href="{% url 'maintenance:log_update' log.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+                        {% if log.status != 'CLOSED' %}
+                        <form method="post" action="{% url 'maintenance:log_close' log.pk %}">{% csrf_token %}
+                            <button class="btn btn-primary btn-sm">Close</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-muted" style="text-align:center;padding:32px;">No maintenance logs.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

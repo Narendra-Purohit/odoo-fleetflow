@@ -1,0 +1,118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}FleetFlow{% endblock %} | Fleet &amp; Logistics</title>
+  <meta name="description" content="FleetFlow - Modular Fleet &amp; Logistics Management System" />
+  <link rel="stylesheet" href="{% static 'css/base.css' %}" />
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+  {% if user.is_authenticated %}
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">&#128667;</div>
+      <span>FleetFlow</span>
+    </div>
+
+    <nav>
+      <div class="sidebar-section">Overview</div>
+      {% with ns=request.resolver_match.namespace %}
+      <a href="{% url 'analytics:dashboard' %}" class="nav-link {% if ns == 'analytics' %}active{% endif %}">
+        <span class="nav-icon">&#x1F4CA;</span> Dashboard
+      </a>
+
+      <div class="sidebar-section">Fleet</div>
+      <a href="{% url 'fleet:vehicle_list' %}" class="nav-link {% if ns == 'fleet' %}active{% endif %}">
+        <span class="nav-icon">&#x1F69A;</span> Vehicles
+      </a>
+      <a href="{% url 'fleet:fuel_log_create' %}" class="nav-link">
+        <span class="nav-icon">&#9981;</span> Fuel Logs
+      </a>
+
+      <div class="sidebar-section">Dispatch</div>
+      <a href="{% url 'dispatch:trip_list' %}" class="nav-link {% if ns == 'dispatch' %}active{% endif %}">
+        <span class="nav-icon">&#x1F5FA;</span> Trips
+      </a>
+      <a href="{% url 'dispatch:driver_list' %}" class="nav-link">
+        <span class="nav-icon">&#x1F9D1;</span> Drivers
+      </a>
+
+      <div class="sidebar-section">Operations</div>
+      <a href="{% url 'maintenance:log_list' %}" class="nav-link {% if ns == 'maintenance' %}active{% endif %}">
+        <span class="nav-icon">&#x1F527;</span> Maintenance
+      </a>
+
+      {% if user.is_superuser or user.is_manager or user.is_financial_analyst %}
+      <div class="sidebar-section">Finance</div>
+      <a href="{% url 'finance:expense_list' %}" class="nav-link {% if ns == 'finance' %}active{% endif %}">
+        <span class="nav-icon">&#x1F4B0;</span> Expenses
+      </a>
+      <a href="{% url 'finance:invoice_list' %}" class="nav-link">
+        <span class="nav-icon">&#x1F9FE;</span> Invoices
+      </a>
+      {% endif %}
+      {% if user.is_superuser or user.is_manager %}
+      <div class="sidebar-section">Admin</div>
+      <a href="{% url 'users:user_list' %}" class="nav-link">
+        <span class="nav-icon">&#x1F465;</span> Users
+      </a>
+      {% endif %}
+      {% endwith %}
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{% url 'users:profile' %}" class="sidebar-user">
+        <div class="user-avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+        <div class="user-info">
+          <div class="user-name">{{ user.get_full_name|truncatechars:18 }}</div>
+          <div class="user-role">{{ user.role|default:"Admin" }}</div>
+        </div>
+      </a>
+      <a href="{% url 'users:change_password' %}" class="btn btn-secondary btn-sm w-full"
+        style="justify-content:center;margin-top:6px;font-size:12px;">🔐 Change Password</a>
+      <form method="post" action="{% url 'users:logout' %}" style="margin-top:6px;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-secondary w-full" style="justify-content:center;">Sign Out</button>
+      </form>
+    </div>
+  </aside>
+
+  <!-- Main wrapper -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <span class="topbar-title">{% block page_title %}Dashboard{% endblock %}</span>
+      <div class="flex items-center gap-3">
+        {% if user.is_superuser or user.is_manager %}
+        <a href="{% url 'dispatch:trip_create' %}" class="btn btn-primary btn-sm">+ New Trip</a>
+        {% endif %}
+      </div>
+    </header>
+
+    <main class="page-content">
+      {% if messages %}
+      <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  {% else %}
+  {% block full_page %}{% endblock %}
+  {% endif %}
+
+  {% block extra_js %}{% endblock %}
+</body>
+
+</html>

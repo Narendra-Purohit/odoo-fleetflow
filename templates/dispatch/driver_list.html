@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Drivers{% endblock %}
+{% block page_title %}Dispatch – Drivers{% endblock %}
+
+{% block content %}
+<div class="section-header">
+    <span class="section-title">All Drivers</span>
+    {% if user.is_manager or user.is_superuser %}
+    <a href="{% url 'dispatch:driver_create' %}" class="btn btn-primary">+ Add Driver</a>
+    {% endif %}
+</div>
+<div class="card">
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>License #</th>
+                    <th>License Expires</th>
+                    <th>Status</th>
+                    <th>Suspended</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for driver in drivers %}
+                <tr>
+                    <td><strong>{{ driver.user.full_name }}</strong><br><span class="text-muted text-small">{{
+                            driver.user.email }}</span></td>
+                    <td>{{ driver.license_number }}</td>
+                    <td>
+                        {% if driver.is_license_valid %}
+                        <span class="badge badge-green">{{ driver.license_expires_on }}</span>
+                        {% else %}
+                        <span class="badge badge-red">EXPIRED {{ driver.license_expires_on }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if driver.status == 'AVAILABLE' %}<span class="badge badge-green">Available</span>
+                        {% elif driver.status == 'ON_TRIP' %}<span class="badge badge-blue">On Trip</span>
+                        {% elif driver.status == 'ON_LEAVE' %}<span class="badge badge-yellow">On Leave</span>
+                        {% else %}<span class="badge badge-gray">Inactive</span>{% endif %}
+                    </td>
+                    <td>
+                        {% if driver.is_suspended %}<span class="badge badge-red">⚠ Suspended</span>
+                        {% else %}<span class="badge badge-gray">No</span>{% endif %}
+                    </td>
+                    <td class="flex gap-2">
+                        {% if user.is_manager or user.is_superuser %}
+                        <a href="{% url 'dispatch:driver_update' driver.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+                        <form method="post" action="{% url 'dispatch:driver_suspend' driver.pk %}">{% csrf_token %}
+                            <button
+                                class="btn {% if driver.is_suspended %}btn-warning{% else %}btn-danger{% endif %} btn-sm">
+                                {% if driver.is_suspended %}Reinstate{% else %}Suspend{% endif %}
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-muted" style="text-align:center;padding:32px;">No drivers yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

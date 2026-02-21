@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}{{ trip.trip_number }}{% endblock %}
+{% block page_title %}Trip: {{ trip.trip_number }}{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start;">
+
+    <!-- Left: trip info + cargo -->
+    <div>
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Trip Details</span>
+                <div class="flex gap-2">
+                    {% if trip.status == 'PLANNED' %}
+                    <form method="post" action="{% url 'dispatch:trip_dispatch' trip.pk %}">{% csrf_token %}
+                        <button class="btn btn-primary btn-sm" {% if not trip.assignment %}title="Assign vehicle first"
+                            disabled{% endif %}>Dispatch</button>
+                    </form>
+                    {% elif trip.status == 'DISPATCHED' %}
+                    <form method="post" action="{% url 'dispatch:trip_in_transit' trip.pk %}">{% csrf_token %}
+                        <button class="btn btn-primary btn-sm">Mark In Transit</button>
+                    </form>
+                    {% elif trip.status == 'IN_TRANSIT' %}
+                    <form method="post" action="{% url 'dispatch:trip_complete' trip.pk %}">{% csrf_token %}
+                        <input name="final_odometer" placeholder="Final odometer (km)"
+                            style="background:#0d1117;border:1px solid var(--border);border-radius:6px;color:var(--text-primary);padding:5px 10px;font-size:12px;margin-right:6px;" />
+                        <button class="btn btn-primary btn-sm">Complete</button>
+                    </form>
+                    {% endif %}
+                    {% if user.is_manager and trip.status not in 'COMPLETED,CANCELLED' %}
+                    <form method="post" action="{% url 'dispatch:trip_cancel' trip.pk %}">{% csrf_token %}
+                        <button class="btn btn-danger btn-sm"
+                            onclick="return confirm('Cancel this trip?')">Cancel</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-grid">
+                <div>
+                    <div class="kpi-label">Status</div>
+                    {% if trip.status == 'PLANNED' %}<span class="badge badge-gray">Planned</span>
+                    {% elif trip.status == 'DISPATCHED' %}<span class="badge badge-blue">Dispatched</span>
+                    {% elif trip.status == 'IN_TRANSIT' %}<span class="badge badge-orange">In Transit</span>
+                    {% elif trip.status == 'COMPLETED' %}<span class="badge badge-green">Completed</span>
+                    {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+                </div>
+                <div>
+                    <div class="kpi-label">Created By</div>
+                    <div>{{ trip.created_by.full_name|default:"—" }}</div>
+                </div>
+                <div>
+                    <div class="kpi-label">Origin</div>
+                    <div class="fw-600">{{ trip.origin }}</div>
+                </div>
+                <div>
+                    <div class="kpi-label">Destination</div>
+                    <div class="fw-600">{{ trip.destination }}</div>
+                </div>
+                <div>
+                    <div class="kpi-label">Scheduled At</div>
+                    <div>{{ trip.scheduled_at|date:"d M Y, H:i" }}</div>
+                </div>
+                <div>
+                    <div class="kpi-label">Distance</div>
+                    <div>{{ trip.distance_km|default:"—" }} km</div>
+                </div>
+                {% if trip.dispatched_at %}<div>
+                    <div class="kpi-label">Dispatched</div>
+                    <div>{{ trip.dispatched_at|date:"d M Y, H:i" }}</div>
+                </div>{% endif %}
+                {% if trip.completed_at %}<div>
+                    <div class="kpi-label">Completed</div>
+                    <div>{{ trip.completed_at|date:"d M Y, H:i" }}</div>
+                </div>{% endif %}
+            </div>
+        </div>
+
+        <!-- Cargo items -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <span class="card-title">📦 Cargo Manifest</span>
+                {% if trip.status == 'PLANNED' %}
+                <button onclick="document.getElementById('cargo-form').style.display='block';this.style.display='none';"
+                    class="btn btn-secondary btn-sm">+ Add Cargo</button>
+                {% endif %}
+            </div>
+            {% if trip.status == 'PLANNED' %}
+            <div id="cargo-form" style="display:none;margin-bottom:16px;">
+                <form method="post" action="{% url 'dispatch:trip_add_cargo' trip.pk %}">
+                    {% csrf_token %}
+                    <div class="form-grid-3">
+                        <div class="form-group"><label class="form-label">Description</label>{{ cargo_form.description
+                            }}</div>
+                        <div class="form-group"><label class="form-label">Weight (kg)</label>{{ cargo_form.weight_kg }}
+                        </div>
+                        <div class="form-group"><label class="form-label">Qty</label>{{ cargo_form.quantity }}</div>
+                    </div>
+                    <label
+                        style="display:flex;align-items:center;gap:8px;color:var(--text-secondary);font-size:13px;margin-bottom:12px;">
+                        {{ cargo_form.is_hazardous }} Hazardous goods
+                    </label>
+                    <button type="submit" class="btn btn-primary btn-sm">Add Item</button>
+                </form>
+            </div>
+            {% endif %}
+            {% if trip.cargo_items.all %}
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Weight</th>
+                            <th>Qty</th>
+                            <th>Hazardous</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in trip.cargo_items.all %}
+                        <tr>
+                            <td>{{ item.description }}</td>
+                            <td>{{ item.weight_kg }} kg</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{% if item.is_hazardous %}<span class="badge badge-red">⚠ Yes</span>{% else %}No{% endif
+                                %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">No cargo items yet.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right: assignment panel -->
+    <div>
+        <div class="card">
+            <div class="card-header"><span class="card-title">🚚 Assignment</span></div>
+            {% if trip.assignment %}
+            <div style="margin-bottom:12px;">
+                <div class="kpi-label">Vehicle</div>
+                <div class="fw-600">{{ trip.assignment.vehicle.plate_number }}</div>
+                <div class="text-muted text-small">{{ trip.assignment.vehicle.make }} {{ trip.assignment.vehicle.model
+                    }}</div>
+            </div>
+            <div>
+                <div class="kpi-label">Driver</div>
+                <div class="fw-600">{{ trip.assignment.driver.user.full_name }}</div>
+                <div class="text-muted text-small">License: {{ trip.assignment.driver.license_number }}</div>
+            </div>
+            {% else %}
+            <div class="empty-state" style="padding:16px 0;">No assignment yet.</div>
+            {% endif %}
+
+            {% if trip.status == 'PLANNED' %}
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+                <div class="fw-600" style="margin-bottom:10px;font-size:13px;">Assign Resources</div>
+                <form method="post" action="{% url 'dispatch:trip_assign' trip.pk %}">
+                    {% csrf_token %}
+                    <div class="form-group"><label class="form-label">Vehicle</label>{{ assign_form.vehicle }}</div>
+                    <div class="form-group"><label class="form-label">Driver</label>{{ assign_form.driver }}</div>
+                    <button type="submit" class="btn btn-primary w-full" style="justify-content:center;">Assign</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    select,
+    input[type=number],
+    input[type=text],
+    input[type=checkbox] {
+        background: #0d1117;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-primary);
+        padding: 7px 10px;
+        font-size: 13px;
+        width: 100%;
+    }
+
+    select:focus,
+    input:focus {
+        border-color: var(--accent-blue);
+        outline: none;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block full_page %}
+<div class="login-page">
+    <div class="login-box">
+        <div class="login-logo">
+            <div class="logo-circle">&#128667;</div>
+            <h1>FleetFlow</h1>
+            <p>Create your account</p>
+        </div>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" style="margin-bottom:16px;">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div class="form-group">
+                    <label class="form-label">{{ form.first_name.label }}</label>
+                    {{ form.first_name }}
+                    {% for e in form.first_name.errors %}<span class="form-error">{{ e }}</span>{% endfor %}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">{{ form.last_name.label }}</label>
+                    {{ form.last_name }}
+                    {% for e in form.last_name.errors %}<span class="form-error">{{ e }}</span>{% endfor %}
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">{{ form.email.label }}</label>
+                {{ form.email }}
+                {% for e in form.email.errors %}<span class="form-error">{{ e }}</span>{% endfor %}
+            </div>
+            <div class="form-group">
+                <label class="form-label">{{ form.username.label }}</label>
+                {{ form.username }}
+                {% for e in form.username.errors %}<span class="form-error">{{ e }}</span>{% endfor %}
+            </div>
+            <div class="form-group">
+                <label class="form-label">{{ form.role.label }}</label>
+                {{ form.role }}
+                {% for e in form.role.errors %}<span class="form-error">{{ e }}</span>{% endfor %}
+            </div>
+            <div class="form-group">
+                <label class="form-label">{{ form.password1.label }}</label>
+                <div class="pw-wrap">
+                    {{ form.password1 }}
+                    <button type="button" class="eye-btn" onclick="togglePw('id_password1', this)"
+                        title="Show/hide password">
+                        <svg id="eye-open-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path
+                                d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
+                        </svg>
+                        <svg id="eye-closed-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                            style="display:none;">
+                            <path
+                                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-5 0-9.27-3.11-11-7.5a10.05 10.05 0 0 1 2.76-4.08M7.18 7.18A10.05 10.05 0 0 1 12 4c5 0 9.27 3.11 11 7.5-.53 1.35-1.3 2.59-2.27 3.67M3 3l18 18" />
+                        </svg>
+                    </button>
+                </div>
+                {% for e in form.password1.errors %}<span class="form-error">{{ e }}</span>{% endfor %}
+            </div>
+            <div class="form-group">
+                <label class="form-label">{{ form.password2.label }}</label>
+                <div class="pw-wrap">
+                    {{ form.password2 }}
+                    <button type="button" class="eye-btn" onclick="togglePw('id_password2', this)"
+                        title="Show/hide password">
+                        <svg id="eye-open-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path
+                                d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
+                        </svg>
+                        <svg id="eye-closed-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                            style="display:none;">
+                            <path
+                                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-5 0-9.27-3.11-11-7.5a10.05 10.05 0 0 1 2.76-4.08M7.18 7.18A10.05 10.05 0 0 1 12 4c5 0 9.27 3.11 11 7.5-.53 1.35-1.3 2.59-2.27 3.67M3 3l18 18" />
+                        </svg>
+                    </button>
+                </div>
+                {% for e in form.password2.errors %}<span class="form-error">{{ e }}</span>{% endfor %}
+            </div>
+            {% if form.non_field_errors %}
+            <div class="alert alert-error">{{ form.non_field_errors.0 }}</div>
+            {% endif %}
+            <button type="submit" class="btn btn-primary w-full"
+                style="justify-content:center;margin-top:12px;padding:10px;">
+                Create Account &rarr;
+            </button>
+        </form>
+
+        <div
+            style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);font-size:13px;color:var(--text-muted);text-align:center;">
+            Already have an account? <a href="{% url 'users:login' %}" style="color:var(--accent-blue);">Sign in</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        background: #0d1117;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: #ffffff;
+        padding: 9px 12px;
+        font-size: 14px;
+        margin-top: 4px;
+        font-family: inherit;
+        box-sizing: border-box;
+    }
+
+    .form-group select option {
+        background: #0d1117;
+        color: #ffffff;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        border-color: var(--accent-blue);
+        outline: none;
+    }
+
+    .form-error {
+        color: #ef4444;
+        font-size: 12px;
+        display: block;
+        margin-top: 4px;
+    }
+
+    /* Password eye toggle */
+    .pw-wrap {
+        position: relative;
+        margin-top: 4px;
+    }
+
+    .pw-wrap input {
+        margin-top: 0;
+        padding-right: 42px;
+    }
+
+    .eye-btn {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+    }
+
+    .eye-btn svg {
+        width: 18px;
+        height: 18px;
+        fill: #ffffff;
+        stroke: none;
+    }
+
+    .eye-btn svg path {
+        fill: #ffffff;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function togglePw(fieldId, btn) {
+        const inp = document.getElementById(fieldId);
+        const isText = inp.type === 'text';
+        inp.type = isText ? 'password' : 'text';
+        const svgs = btn.querySelectorAll('svg');
+        svgs[0].style.display = isText ? '' : 'none';   // open eye
+        svgs[1].style.display = isText ? 'none' : '';   // closed eye
+    }
+</script>
+{% endblock %}
