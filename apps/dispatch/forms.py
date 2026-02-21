@@ -2,16 +2,45 @@
 FleetFlow – Dispatch App Forms.
 """
 from django import forms
+from django.contrib.auth import get_user_model
 from apps.dispatch.models import Driver, Trip, TripAssignment, Cargo
+
+User = get_user_model()
+
+
+class UserChoiceField(forms.ModelChoiceField):
+    """Shows 'Full Name – email@example.com' in the driver user dropdown."""
+
+    def label_from_instance(self, obj):
+        full_name = f"{obj.first_name} {obj.last_name}".strip()
+        if full_name:
+            return f"{full_name} – {obj.email}"
+        return obj.email
 
 
 class DriverForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # For existing driver (edit), allow current user + unassigned users.
+        # For new driver, only show users without an existing driver profile.
+        existing_driver_user_ids = Driver.objects.values_list("user_id", flat=True)
+        if self.instance and self.instance.pk:
+            available_users = User.objects.exclude(
+                driver_profile__isnull=False
+            ).exclude(pk=self.instance.user_id) | User.objects.filter(pk=self.instance.user_id)
+        else:
+            available_users = User.objects.exclude(id__in=existing_driver_user_ids)
+        self.fields["user"].queryset = available_users.order_by("first_name", "last_name", "email")
+
     class Meta:
         model = Driver
         fields = [
             "user", "license_number", "license_expires_on",
             "license_class", "phone", "experience_years", "notes",
         ]
+        field_classes = {
+            "user": UserChoiceField,
+        }
         widgets = {
             "license_expires_on": forms.DateInput(attrs={"type": "date"}),
             "notes": forms.Textarea(attrs={"rows": 2}),
